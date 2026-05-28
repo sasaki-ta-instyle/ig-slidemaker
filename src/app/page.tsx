@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { DropZone } from "@/components/DropZone";
-import { SlideCountInput } from "@/components/SlideCountInput";
+import { PaletteSelect } from "@/components/PaletteSelect";
+import { SlideCountInput, type SlideCountValue } from "@/components/SlideCountInput";
 import { PreviewIframe } from "@/components/PreviewIframe";
 import { ActionBar } from "@/components/ActionBar";
 import { ProgressLine, type Phase } from "@/components/ProgressLine";
@@ -23,7 +24,7 @@ type SlideState = {
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const DEFAULT_TEMPLATE = "presentation-liquid";
-const DEFAULT_SLIDE_COUNT = 12;
+const DEFAULT_SLIDE_COUNT: SlideCountValue = "auto";
 
 function deriveDownloadName(srcName: string | undefined): string {
   if (!srcName) return "slides.html";
@@ -125,7 +126,8 @@ async function consumeSse(res: Response, handlers: SseHandlers) {
 export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
   const template = DEFAULT_TEMPLATE;
-  const [slideCount, setSlideCount] = useState<number>(DEFAULT_SLIDE_COUNT);
+  const [palette, setPalette] = useState<string>("ig");
+  const [slideCount, setSlideCount] = useState<SlideCountValue>(DEFAULT_SLIDE_COUNT);
   const [instruction, setInstruction] = useState<string>("");
   const [slides, setSlides] = useState<SlideState[]>([]);
   const [shellHead, setShellHead] = useState<string>("");
@@ -182,7 +184,8 @@ export default function HomePage() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("template", template);
-    fd.append("slideCountHint", String(slideCount));
+    fd.append("slideCountHint", slideCount === "auto" ? "auto" : String(slideCount));
+    fd.append("palette", palette);
     if (instruction.trim()) fd.append("instruction", instruction.trim());
 
     try {
@@ -237,7 +240,7 @@ export default function HomePage() {
       setPhase("error");
       setError((err as Error).message ?? "失敗しました");
     }
-  }, [file, template, slideCount, instruction, appendToSlide, upsertSlide]);
+  }, [file, template, palette, slideCount, instruction, appendToSlide, upsertSlide]);
 
   const cancel = useCallback(() => {
     abortRef.current?.abort();
@@ -278,7 +281,18 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h2 className="controls__section-title">2. スライド数の目安</h2>
+              <h2 className="controls__section-title">2. カラーパレットを選ぶ</h2>
+              <PaletteSelect
+                value={palette}
+                onChange={setPalette}
+                disabled={isStreaming}
+                basePath={BASE_PATH}
+                template={template}
+              />
+            </div>
+
+            <div>
+              <h2 className="controls__section-title">3. スライド数の目安</h2>
               <SlideCountInput
                 value={slideCount}
                 onChange={setSlideCount}
@@ -287,7 +301,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h2 className="controls__section-title">3. 追加指示（任意）</h2>
+              <h2 className="controls__section-title">4. 追加指示（任意）</h2>
               <textarea
                 className="instruction-textarea"
                 value={instruction}
@@ -340,7 +354,7 @@ export default function HomePage() {
 
             {hasOutput && (
               <div>
-                <h2 className="controls__section-title">4. 公開する</h2>
+                <h2 className="controls__section-title">5. 公開する</h2>
                 <PublishPanel html={cleaned} disabled={isStreaming} basePath={BASE_PATH} />
               </div>
             )}

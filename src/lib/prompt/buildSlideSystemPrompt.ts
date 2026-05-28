@@ -10,7 +10,8 @@ export interface BuildSlideSystemPromptArgs {
   template: Template;
   designMd: string;
   imageBank: ImageBankEntry[];
-  slideCountHint: number;
+  /** Specific number of slides to target, or "auto" to let the model decide based on content. */
+  slideCountHint: number | "auto";
   userInstruction?: string;
 }
 
@@ -89,7 +90,13 @@ export function buildSlideSystemPrompt(
 
   blocks.push({
     type: "text",
-    text: `SLIDE COUNT HINT: aim for ${slideCountHint} slides (±20%).`,
+    text:
+      slideCountHint === "auto"
+        ? "SLIDE COUNT: auto. Decide the natural number of slides for this content. " +
+          "Do NOT pad to hit a target, and do NOT over-condense. " +
+          "Prefer 1 main idea per slide. Typical decks land between 6 and 20 slides; " +
+          "go shorter for brief inputs and longer (up to the template's maxSlides) for dense ones."
+        : `SLIDE COUNT HINT: aim for ${slideCountHint} slides (±20%).`,
   });
 
   return blocks;

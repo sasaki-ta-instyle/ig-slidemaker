@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type Anthropic from "@anthropic-ai/sdk";
 import { extractAttachment, MAX_SIZE, type ExtractedAttachment } from "@/lib/attachments";
-import { loadTemplate } from "@/lib/templates/registry";
+import { loadTemplate, applyPalette } from "@/lib/templates/registry";
 import { ImageBank, type ImageBankEntry } from "@/lib/media/imageBank";
 import {
   extractPptxEmbedded,
@@ -102,21 +102,29 @@ export async function POST(req: Request): Promise<Response> {
 
   const file = form.get("file");
   const templateRaw = String(form.get("template") ?? "").trim();
-  const slideCountHintRaw = Number(form.get("slideCountHint") ?? 0);
+  const slideCountHintRawValue = form.get("slideCountHint");
+  const slideCountHintRaw =
+    typeof slideCountHintRawValue === "string" ? slideCountHintRawValue.trim() : "";
   const instructionRaw = String(form.get("instruction") ?? "").trim();
+  const paletteRaw = String(form.get("palette") ?? "").trim();
 
   if (!templateRaw) {
     return badRequest("template フィールドが必要です", "bad_template");
   }
 
-  if (
-    !Number.isFinite(slideCountHintRaw) ||
-    slideCountHintRaw < 5 ||
-    slideCountHintRaw > 40
-  ) {
-    return badRequest("slideCountHint は 5〜40 の数値で指定してください", "bad_slide_count");
+  let slideCountHint: number | "auto";
+  if (slideCountHintRaw === "" || slideCountHintRaw === "auto") {
+    slideCountHint = "auto";
+  } else {
+    const n = Number(slideCountHintRaw);
+    if (!Number.isFinite(n) || n < 5 || n > 40) {
+      return badRequest(
+        "slideCountHint は 5〜40 の数値、または 'auto' を指定してください",
+        "bad_slide_count",
+      );
+    }
+    slideCountHint = Math.round(n);
   }
-  const slideCountHint = Math.round(slideCountHintRaw);
 
   if (!(file instanceof File)) {
     return badRequest("file フィールドが見つかりません");
@@ -135,6 +143,14 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return badRequest(`テンプレ「${templateRaw}」が見つかりません`, "bad_template");
   }
+
+  // Resolve palette (default = template.defaultPalette, e.g. "ig").
+  const paletteId =
+    paletteRaw && template.palettes[paletteRaw] ? paletteRaw : template.defaultPalette;
+  const paletteCss = template.palettes[paletteId] ?? "";
+  const resolvedShellHead = paletteCss
+    ? applyPalette(template.shellHead, paletteCss)
+    : template.shellHead;
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const mimeType = file.type || "application/octet-stream";
@@ -210,7 +226,7 @@ export async function POST(req: Request): Promise<Response> {
         controller.enqueue(
           frame({
             event: "shell",
-            data: { shellHead: template.shellHead, shellTail: template.shellTail },
+            data: { shellHead: resolvedShellHead, shellTail: template.shellTail },
           }),
         );
 
@@ -222,9 +238,10 @@ export async function POST(req: Request): Promise<Response> {
           designMd = "";
         }
 
-        // Build prompt
+        // Build prompt — pass a shellHead with the chosen palette applied so
+        // Claude sees the exact CSS variables that the final HTML will use.
         const systemBlocks = buildSlideSystemPrompt({
-          template,
+          template: { ...template, shellHead: resolvedShellHead },
           designMd,
           imageBank: bankEntries,
           slideCountHint,
@@ -308,7 +325,7 @@ export async function POST(req: Request): Promise<Response> {
                   tokensOut: evt.output_tokens,
                   cacheRead: evt.cache_read_input_tokens,
                   finishReason: evt.stop_reason,
-                  shellHead: template.shellHead,
+                  shellHead: resolvedShellHead,
                   shellTail: template.shellTail,
                 },
               }),
