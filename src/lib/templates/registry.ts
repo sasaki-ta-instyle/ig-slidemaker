@@ -37,12 +37,6 @@ const TEMPLATES_ROOT = path.join(process.cwd(), "src/templates");
 const PALETTE_REGEX =
   /\/\* PALETTE_BEGIN[\s\S]*?\/\* PALETTE_END \*\//;
 
-// Human-friendly labels for known palettes.
-const PALETTE_LABELS: Record<string, string> = {
-  ig: "ig（instyle.group, warm neutral）",
-  mebius: "mebius（cool gray + cyan accent）",
-};
-
 const templateCache = new Map<string, Template>();
 let metaListCache: TemplateMeta[] | null = null;
 
@@ -133,7 +127,7 @@ async function loadTemplateFromDisk(id: string): Promise<Template> {
 export function getPaletteList(tpl: Template): PaletteInfo[] {
   return Object.keys(tpl.palettes)
     .sort()
-    .map((id) => ({ id, label: PALETTE_LABELS[id] ?? id }));
+    .map((id) => ({ id, label: id }));
 }
 
 export async function loadTemplate(id: string): Promise<Template> {
