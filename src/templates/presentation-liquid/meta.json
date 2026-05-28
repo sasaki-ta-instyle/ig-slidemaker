@@ -1,0 +1,14 @@
+{
+  "id": "presentation-liquid",
+  "name": "Presentation Liquid",
+  "description": "instyle.group Liquid Glass deck. 1366×900 landscape, Gen Interface JP, dark/light glass materials.",
+  "designSystem": "liquid",
+  "aspect": "16:10",
+  "viewportWidth": 1366,
+  "viewportHeight": 900,
+  "maxSlides": 40,
+  "supportsImages": true,
+  "slideTypes": ["cover", "section", "body", "two", "big", "quote", "compare", "image-figure", "image-grid", "closing"],
+  "imageGuidance": "If the source contains embedded images, prefer image-figure / image-grid / two slide types over text-only content. Page captures from PDF should be used sparingly, ideally as image-figure with a caption explaining what it shows.",
+  "scaffoldOrder": ["cover", "section?", "body|two|big|image-figure|image-grid|quote|compare", "closing"]
+}

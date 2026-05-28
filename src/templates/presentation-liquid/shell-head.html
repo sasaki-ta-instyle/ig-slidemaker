@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liquid Glass Presentation Template - instyle.group</title>
+<meta property="og:title" content="Liquid Glass Presentation Template">
+<meta property="og:description" content="iPad Pro 12.9 (1366×900 landscape) 向け Liquid Glass プレゼンスライドのテンプレート">
+<link rel="icon" href="https://app.instyle.group/_shared/static/favicon.png">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gen-interface-jp@0.5.0/all.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --color-bg:          #EDE9E0;
+  --color-text:        #35362D;
+  --color-text-muted:  #82837A;
+  --color-text-light:  #C4C1B0;
+  --color-text-inv:    #F3F1EE;
+  --color-success:     #7BB785;
+  --color-warning:     #D4772C;
+  --color-error:       #C6292C;
+  --color-info:        #38537B;
+  --color-highlight:   #E2DD2A;
+
+  --glass-light:       rgba(255,255,255,0.55);
+  --glass-warm:        rgba(243,241,238,0.58);
+  --glass-tinted:      rgba(196,193,176,0.42);
+  --glass-dark:        rgba(32,33,26,0.78);
+
+  --glass-border-l:    rgba(255,255,255,0.80);
+  --glass-border-w:    rgba(255,255,255,0.62);
+  --glass-border-d:    rgba(255,255,255,0.13);
+
+  --glass-blur-sm:     saturate(180%) blur(16px);
+  --glass-blur:        saturate(200%) blur(24px);
+  --glass-blur-lg:     saturate(220%) blur(40px);
+
+  --glass-shadow-sm:   0 2px 12px rgba(53,54,45,.09), 0 1px 4px rgba(53,54,45,.07);
+  --glass-shadow:      0 8px 32px rgba(53,54,45,.11), 0 2px 8px rgba(53,54,45,.08);
+  --glass-shadow-lg:   0 20px 64px rgba(53,54,45,.16), 0 4px 16px rgba(53,54,45,.10);
+
+  --glass-hl:          inset 0 1px 0 rgba(255,255,255,.90), inset 0 -1px 0 rgba(0,0,0,.055);
+  --glass-hl-d:        inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 0 rgba(0,0,0,.22);
+
+  --r-sm:  10px;
+  --r:     16px;
+  --r-lg:  24px;
+  --r-xl:  32px;
+  --r-pill:999px;
+
+  --font-sans:    'Gen Interface JP', sans-serif;
+  --font-display: 'Gen Interface JP Display', 'Gen Interface JP', sans-serif;
+  --font-mono:    'JetBrains Mono', 'Menlo', monospace;
+
+  --ease-out:    520ms cubic-bezier(.22,1,.36,1);   /* easeOutQuint */
+  --ease-spring: 620ms cubic-bezier(.34,1.56,.64,1);
+  --ease-stage:  420ms cubic-bezier(.4,0,.2,1);
+
+  --pad-x: 96px;
+  --pad-y-top: 80px;
+  --pad-y-bottom: 96px;  /* optical compensation: bottom slightly larger */
+
+  /* grain: SVG dataURI で 1 回だけ展開 */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #35362D;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+/* numerals: tabular figures by default for any numeric block */
+.bignum-value, .counter, .section-number, .bullet-num, .deckmark, .compare-card-key, .quote-mark, .cover-meta { font-variant-numeric: tabular-nums; }
+/* headings: <br> 入りには balance を当てない。balance は明示クラスで */
+.title-xl, .title-l, .title-m, .title-s, .quote-text { text-wrap: pretty; }
+.is-balance { text-wrap: balance; }
+.body, .lede, .bullet-body, .compare-card-body, .closing-meta { text-wrap: pretty; }
+
+/* ── Stage：1366×900 を画面にフィット ── */
+.stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.deck {
+  position: relative;
+  width: 1366px;
+  height: 900px;
+  flex-shrink: 0;
+  transform-origin: center center;
+  background: var(--color-bg);
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,.45);
+  border-radius: 2px;
+}
+
+/* deck-wide grain overlay（最も効くやつ） */
+.deck::after {
+  content: '';
+  position: absolute; inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 240px 240px;
+  mix-blend-mode: multiply;
+  opacity: .9;
+}
+.deck.is-dark::after { mix-blend-mode: screen; opacity: .4; }
+
+/* ── Ambient scene-bg（deck の最背面） ── */
+.scene-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scene-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 72% 65% at  8%  6%, rgba(196,193,176,.58) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 55% at 94% 10%, rgba(230,226,215,.65) 0%, transparent 52%),
+    radial-gradient(ellipse 52% 68% at 78% 88%, rgba(196,193,176,.42) 0%, transparent 55%),
+    radial-gradient(ellipse 66% 46% at 18% 92%, rgba(230,226,215,.52) 0%, transparent 55%),
+    radial-gradient(ellipse 42% 42% at 50% 48%, rgba(243,241,238,.32) 0%, transparent 52%);
+}
+
+/* dark overlay は inset で内側に効かせる（外周に warm を残す） */
+.deck.is-dark .scene-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-dark);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  backdrop-filter: var(--glass-blur-lg);
+}
+.deck.is-dark .scene-bg::before { opacity: .65; }
+
+/* ── Slide track ── */
+.track {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  transition: transform var(--ease-out);
+  will-change: transform;
+}
+.slide {
+  flex-shrink: 0;
+  width: 1366px;
+  height: 900px;
+  position: relative;
+  padding: var(--pad-y-top) var(--pad-x) var(--pad-y-bottom);
+  display: flex;
+  flex-direction: column;
+}
+
+/* slide 内コンテンツの z は 2（chrome=5, grain=4, scene=0） */
+.slide > * { position: relative; z-index: 2; }
+
+/* staggered entry — JS で is-current を付与 */
+.slide > * {
+  transition: opacity 480ms ease, transform 520ms cubic-bezier(.22,1,.36,1);
+}
+.slide:not(.is-current) > * { opacity: 0; transform: translateY(10px); }
+.slide.is-current > *:nth-child(1) { transition-delay: 80ms; }
+.slide.is-current > *:nth-child(2) { transition-delay: 180ms; }
+.slide.is-current > *:nth-child(3) { transition-delay: 280ms; }
+.slide.is-current > *:nth-child(4) { transition-delay: 360ms; }
+.slide.is-current > *:nth-child(5) { transition-delay: 440ms; }
+
+/* ── 全スライド共通の chrome ── */
+.chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 6;  /* grain (4) より上 */
+  pointer-events: none;
+}
+.chrome > * { pointer-events: auto; }
+
+.progress {
+  position: absolute;
+  top: 0; left: 0;
+  height: 4px;
+  background: var(--color-text);
+  opacity: .7;
+  transition: width var(--ease-out), background var(--ease-out);
+  border-radius: 0 var(--r-pill) var(--r-pill) 0;
+}
+.brand {
+  position: absolute;
+  top: 36px; left: var(--pad-x);
+  display: flex; align-items: center; gap: 12px;
+  font-size: 12px; letter-spacing: .04em;
+  color: var(--color-text-muted);
+  transition: color var(--ease-stage);
+}
+.brand img { height: 14px; opacity: .68; transition: filter var(--ease-stage), opacity var(--ease-stage); }
+.brand-divider { width: 1px; height: 12px; background: currentColor; opacity: .4; }
+.brand-context { font-weight: 500; }
+
+.counter {
+  position: absolute;
+  bottom: 38px; right: var(--pad-x);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  letter-spacing: .12em;
+  transition: color var(--ease-stage);
+}
+.counter b { color: var(--color-text); font-weight: 500; transition: color var(--ease-stage); }
+
+.deckmark {
+  position: absolute;
+  bottom: 38px; left: var(--pad-x);
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  transition: color var(--ease-stage);
+}
+
+.deck.is-dark .progress  { background: var(--color-text-inv); opacity: .7; }
+.deck.is-dark .brand     { color: rgba(243,241,238,.7); }
+.deck.is-dark .brand img { filter: invert(1) brightness(1.4); opacity: .9; }
+.deck.is-dark .counter   { color: rgba(243,241,238,.55); }
+.deck.is-dark .counter b { color: var(--color-text-inv); }
+.deck.is-dark .deckmark  { color: rgba(243,241,238,.55); }
+
+/* ── 共通タイポ ── */
+/* セクションマーカー：pill / glass / border を排し、タイポ + 短い水平線のみ。
+   ボタンに見える誤認を避ける（クリック対象ではないので affordance を消す）。 */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 36px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: .55;
+  margin-right: 14px;
+  vertical-align: middle;
+}
+.title-xl  { font-family: var(--font-display); font-weight: 200; font-size: 96px;  line-height: 1.04; letter-spacing: -.04em; color: var(--color-text); }
+.title-l   { font-family: var(--font-display); font-weight: 200; font-size: 72px;  line-height: 1.05; letter-spacing: -.032em; }
+.title-m   { font-family: var(--font-display); font-weight: 300; font-size: 54px;  line-height: 1.1;  letter-spacing: -.025em; }
+.title-s   { font-family: var(--font-display); font-weight: 400; font-size: 36px;  line-height: 1.18; letter-spacing: -.018em; }
+.lede      { font-size: 21px; line-height: 1.6;  color: var(--color-text); max-width: 880px; }
+.body      { font-size: 17px; line-height: 1.75; color: var(--color-text); max-width: 760px; }
+.caption   { font-size: 13px; line-height: 1.6;  color: var(--color-text-muted); letter-spacing: .01em; }
+mark       { background: linear-gradient(180deg, transparent 60%, var(--color-highlight) 60%); padding: 0 2px; color: var(--color-text); }
+code.tag   { font-family: var(--font-mono); font-size: 13px; background: var(--glass-tinted); padding: 2px 8px; border-radius: 6px; }
+
+.deck.is-dark .title-xl, .deck.is-dark .title-l, .deck.is-dark .title-m, .deck.is-dark .title-s, .deck.is-dark .quote-text { color: var(--color-text-inv); }
+.deck.is-dark .body { color: rgba(243,241,238,.86); }
+.deck.is-dark .eyebrow {
+  color: rgba(243,241,238,.7);
+}
+.deck.is-dark .caption { color: rgba(243,241,238,.66); }
+
+/* ─────────────  個別レイアウト  ───────────── */
+
+/* 1. cover — asymmetric grid + 縦書きアクセント */
+.slide--cover {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  gap: 0 32px;
+  align-items: start;
+}
+.slide--cover .eyebrow { grid-column: 1; grid-row: 1; align-self: start; margin-top: 0; }
+.slide--cover .title-xl { grid-column: 1 / -1; grid-row: 2; align-self: end; max-width: 1100px; }
+.slide--cover .cover-meta { grid-column: 1; grid-row: 3; align-self: end; }
+.cover-vmark {
+  grid-column: 2; grid-row: 3;
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .36em;
+  color: var(--color-text-muted);
+  align-self: end;
+  padding-bottom: 4px;
+  opacity: .85;
+}
+.cover-meta {
+  display: flex; align-items: center; gap: 0;
+  margin-top: 0;
+  font-size: 13px; color: var(--color-text-muted);
+  letter-spacing: .02em;
+}
+.cover-meta span { padding-right: 22px; margin-right: 22px; border-right: 1px solid var(--color-text-light); }
+.cover-meta span:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+
+/* 2. section divider — 巨大タイトル単体（カウンタは chrome が既に担う） */
+.slide--section { justify-content: center; }
+.slide--section .title-xl { max-width: 1100px; }
+.section-rule { width: 64px; height: 1px; background: var(--color-text); opacity: .55; margin: 40px 0 28px; }
+.slide--section .lede { max-width: 720px; }
+.deck.is-dark .section-rule { background: var(--color-text-inv); }
+
+/* 3. body bullets — bullet-num を display フォントの大数字に */
+.slide--body { gap: 64px; }
+.slide--body .head { margin-bottom: 0; }
+.bullets { display: grid; gap: 36px; max-width: 1000px; align-content: start; }
+.bullet {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.bullet-num {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 200;
+  color: var(--color-text);
+  opacity: .26;
+  letter-spacing: -.025em;
+  padding-top: 0;
+  line-height: 1;
+}
+.bullet-body { font-size: 19px; line-height: 1.7; color: var(--color-text); }
+.bullet-body strong { font-weight: 600; }
+
+/* 4. two column — VISUAL 枠の中身を実装 */
+.slide--two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 72px;
+  align-items: center;
+  padding-top: 0; padding-bottom: 0;
+}
+.two-text { align-self: center; }
+.two-text .body { margin-top: 24px; }
+.two-visual {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  max-height: 680px;
+  border-radius: var(--r-lg);
+  background: var(--glass-warm);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-w);
+  box-shadow: var(--glass-hl), var(--glass-shadow);
+  overflow: hidden;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  padding: 28px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 18px;
+}
+.visual-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .3em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+.visual-frame {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--r);
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(53,54,45,.04) 0 1px, transparent 1px 22px),
+    rgba(255,255,255,.55);
+  border: 1px solid rgba(255,255,255,.7);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .35em;
+  color: var(--color-text-light);
+  position: relative;
+}
+.visual-frame::after {
+  content: '16:10';
+  position: absolute;
+  top: 12px; right: 14px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .2em;
+  color: var(--color-text-light);
+}
+.visual-caption {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+/* 5. big number — 1.4 : 1 : 1 + thin dividers */
+.slide--big .head { margin-bottom: 0; }
+.bignum-wrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+.bignum {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+.bignum-value {
+  font-family: var(--font-display);
+  font-weight: 200;
+  font-size: 340px;
+  line-height: .85;
+  letter-spacing: -.06em;
+  color: var(--color-text);
+}
+.bignum-unit { font-size: 56px; font-weight: 300; color: var(--color-text-muted); letter-spacing: -.02em; }
+.bignum-foot {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid rgba(53,54,45,.14);
+  padding-top: 28px;
+}
+.bignum-foot .caption {
+  padding: 0 32px;
+  border-right: 1px solid rgba(53,54,45,.14);
+}
+.bignum-foot .caption:first-child { padding-left: 0; }
+.bignum-foot .caption:last-child  { padding-right: 0; border-right: 0; }
+.bignum-foot .caption b { display: block; color: var(--color-text); font-size: 16px; font-weight: 500; margin-bottom: 8px; letter-spacing: -.005em; }
+
+/* 6. quote — 引用符を巨大化して editorial に */
+.slide--quote { justify-content: center; padding-top: 0; padding-bottom: 0; }
+.quote-wrap { max-width: 1060px; align-self: center; position: relative; padding-top: 60px; }
+.quote-mark {
+  font-family: var(--font-display);
+  font-weight: 200;
+  font-size: 420px;
+  line-height: .55;
+  color: var(--color-text);
+  opacity: .14;
+  position: absolute;
+  top: -40px; left: -30px;
+  pointer-events: none;
+  user-select: none;
+}
+.quote-text {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 46px;
+  line-height: 1.32;
+  letter-spacing: -.018em;
+  color: var(--color-text);
+  max-width: 940px;
+  position: relative;
+}
+.quote-author {
+  margin-top: 44px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+}
+.quote-author-line { width: 56px; height: 1px; background: var(--color-text); opacity: .5; }
+.quote-author-name { font-size: 14px; letter-spacing: .04em; color: var(--color-text-muted); }
+.quote-author-name b { color: var(--color-text); font-weight: 500; margin-right: 10px; }
+
+/* 7. compare 2×2 — grain overlay + hover spotlight */
+.slide--compare .head { margin-bottom: 36px; }
+.compare-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+}
+.compare-card {
+  position: relative;
+  padding: 36px 40px;
+  border-radius: var(--r-lg);
+  background: var(--glass-light);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-l);
+  box-shadow: var(--glass-hl), var(--glass-shadow-sm);
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 10px;
+  overflow: hidden;
+  transition: box-shadow var(--ease-stage), transform var(--ease-stage);
+}
+.compare-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: var(--grain);
+  background-size: 200px 200px;
+  mix-blend-mode: overlay;
+  opacity: .65;
+  pointer-events: none;
+}
+.compare-card.is-tinted { background: var(--glass-tinted); border-color: rgba(255,255,255,.65); }
+.compare-card.is-warm   { background: var(--glass-warm); border-color: var(--glass-border-w); }
+.compare-card.is-dark   {
+  background: var(--glass-dark);
+  border-color: var(--glass-border-d);
+  color: var(--color-text-inv);
+  box-shadow: var(--glass-hl-d), var(--glass-shadow);
+}
+.compare-card.is-dark::before { mix-blend-mode: screen; opacity: .35; }
+.compare-card-key {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .2em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  position: relative; z-index: 1;
+}
+.compare-card.is-dark .compare-card-key { color: rgba(243,241,238,.65); }
+.compare-card-title { font-family: var(--font-display); font-weight: 400; font-size: 28px; letter-spacing: -.018em; position: relative; z-index: 1; }
+.compare-card.is-dark .compare-card-title { color: var(--color-text-inv); }
+.compare-card-body  { font-size: 15px; line-height: 1.65; color: var(--color-text); align-self: end; position: relative; z-index: 1; }
+.compare-card.is-dark .compare-card-body { color: rgba(243,241,238,.82); }
+
+/* 8. closing — 2col grid + inset dark */
+.deck.is-dark .scene-bg::after {
+  inset: 64px;
+  border-radius: var(--r-lg);
+}
+.slide--closing {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  grid-template-rows: auto 1fr auto;
+  gap: 0 56px;
+  padding-top: 120px;
+  padding-bottom: 120px;
+  align-items: start;
+}
+.slide--closing .eyebrow { grid-column: 1; grid-row: 1; align-self: start; margin: 0; }
+.slide--closing .title-xl { grid-column: 1 / -1; grid-row: 2; align-self: end; max-width: 1080px; }
+.slide--closing .closing-foot { grid-column: 1 / -1; grid-row: 3; margin-top: 0; }
+.closing-fin {
+  grid-column: 2; grid-row: 1;
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .36em;
+  color: rgba(243,241,238,.6);
+  justify-self: end;
+  align-self: start;
+  padding-top: 4px;
+}
+
+.closing-foot {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 32px;
+}
+.closing-meta { display: grid; gap: 8px; font-size: 14px; color: rgba(243,241,238,.78); }
+.closing-meta b { color: var(--color-text-inv); font-weight: 500; letter-spacing: .03em; }
+.closing-cta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .22em;
+  padding: 14px 22px;
+  border: 1px solid rgba(255,255,255,.4);
+  border-radius: var(--r-pill);
+  color: var(--color-text-inv);
+  background: rgba(255,255,255,.08);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  backdrop-filter: var(--glass-blur-sm);
+}
+
+/* ─────────────  Vertical scroll mode（縦スクロール一覧）  ───────────── */
+.stage.is-scrolling {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 32px 0;
+  background: #35362D;
+}
+.deck.is-vertical {
+  position: relative;
+  width: 1366px;
+  height: auto;
+  margin: 0 auto;
+  transform: none !important;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+.deck.is-vertical .scene-bg,
+.deck.is-vertical .chrome,
+.deck.is-vertical::after { display: none; }
+.deck.is-vertical .track {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: none;
+}
+.deck.is-vertical .slide {
+  position: relative;
+  background: var(--color-bg);
+  border-radius: var(--r);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  overflow: hidden;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.deck.is-vertical .slide > * {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+/* dark slide は背景を dark glass で */
+.deck.is-vertical .slide[data-dark="true"] {
+  background: linear-gradient(rgba(32,33,26,.78), rgba(32,33,26,.78)), var(--color-bg);
+  color: var(--color-text-inv);
+}
+.deck.is-vertical .slide[data-dark="true"] .title-xl,
+.deck.is-vertical .slide[data-dark="true"] .title-l,
+.deck.is-vertical .slide[data-dark="true"] .title-m,
+.deck.is-vertical .slide[data-dark="true"] .title-s,
+.deck.is-vertical .slide[data-dark="true"] .quote-text { color: var(--color-text-inv); }
+/* 縦スクロール時のスライド番号インジケータ */
+.deck.is-vertical .slide::before {
+  content: attr(data-name);
+  position: absolute;
+  top: 16px; right: 24px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  z-index: 10;
+  pointer-events: none;
+}
+.deck.is-vertical .slide[data-dark="true"]::before { color: rgba(243,241,238,.6); }
+
+/* ─────────────  Overview mode（4×2 グリッド）  ───────────── */
+.deck.is-overview .track { transform: none !important; }
+.deck.is-overview .track {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  padding: 28px;
+  width: 100%;
+  height: 100%;
+}
+.deck.is-overview .slide {
+  width: 100%; height: 100%;
+  aspect-ratio: 1366 / 900;
+  padding: 0;
+  cursor: pointer;
+  outline: 2px solid transparent;
+  border-radius: var(--r);
+  overflow: hidden;
+  background: rgba(255,255,255,.4);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border-l);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  letter-spacing: .15em;
+  transition: outline-color 150ms ease;
+}
+.deck.is-overview .slide::before {
+  content: attr(data-name);
+  text-transform: uppercase;
+}
+.deck.is-overview .slide > * { display: none; }
+.deck.is-overview .slide:hover { outline-color: var(--color-text); }
+.deck.is-overview .chrome { display: none; }
+
+/* ─────────────  Help bar / portrait warning  ───────────── */
+.help {
+  position: fixed;
+  bottom: 18px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(243,241,238,.7);
+  background: rgba(20,20,18,.6);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r-pill);
+  padding: 9px 16px;
+  letter-spacing: .04em;
+  transition: opacity var(--ease-stage);
+}
+.help kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.85);
+  margin: 0 3px;
+}
+.is-presenting .help { opacity: 0; pointer-events: none; }
+
+.portrait-warning {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--color-bg);
+  place-items: center;
+  text-align: center;
+  padding: 48px;
+  color: var(--color-text);
+}
+.portrait-warning .icon { font-size: 56px; margin-bottom: 16px; opacity: .5; }
+@media (orientation: portrait) {
+  .portrait-warning { display: grid; }
+}
+
+/* ── image placeholders (image-figure / image-grid) ── */
+.slide--two .visual-img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-lg); }
+.slide--compare .grid-img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: var(--r); margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div class="portrait-warning">
+  <div>
+    <div class="icon">⟲</div>
+    <div class="title-s">画面を横向きにしてください</div>
+    <div class="caption" style="margin-top:12px">このテンプレは iPad Pro 12.9 (1366×900 landscape) 向けです</div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="deck" id="deck">
+
+    <div class="scene-bg"></div>
+
+    <div class="track" id="track">
+
