@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { DropZone } from "@/components/DropZone";
-import { TemplateSelect } from "@/components/TemplateSelect";
 import { SlideCountInput } from "@/components/SlideCountInput";
 import { PreviewIframe } from "@/components/PreviewIframe";
 import { ActionBar } from "@/components/ActionBar";
@@ -125,7 +124,7 @@ async function consumeSse(res: Response, handlers: SseHandlers) {
 
 export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
-  const [template, setTemplate] = useState<string>(DEFAULT_TEMPLATE);
+  const template = DEFAULT_TEMPLATE;
   const [slideCount, setSlideCount] = useState<number>(DEFAULT_SLIDE_COUNT);
   const [instruction, setInstruction] = useState<string>("");
   const [slides, setSlides] = useState<SlideState[]>([]);
@@ -279,17 +278,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h2 className="controls__section-title">2. テンプレを選ぶ</h2>
-              <TemplateSelect
-                value={template}
-                onChange={setTemplate}
-                disabled={isStreaming}
-                basePath={BASE_PATH}
-              />
-            </div>
-
-            <div>
-              <h2 className="controls__section-title">3. スライド数の目安</h2>
+              <h2 className="controls__section-title">2. スライド数の目安</h2>
               <SlideCountInput
                 value={slideCount}
                 onChange={setSlideCount}
@@ -298,7 +287,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h2 className="controls__section-title">4. 追加指示（任意）</h2>
+              <h2 className="controls__section-title">3. 追加指示（任意）</h2>
               <textarea
                 className="instruction-textarea"
                 value={instruction}
@@ -351,7 +340,7 @@ export default function HomePage() {
 
             {hasOutput && (
               <div>
-                <h2 className="controls__section-title">5. 公開する</h2>
+                <h2 className="controls__section-title">4. 公開する</h2>
                 <PublishPanel html={cleaned} disabled={isStreaming} basePath={BASE_PATH} />
               </div>
             )}
