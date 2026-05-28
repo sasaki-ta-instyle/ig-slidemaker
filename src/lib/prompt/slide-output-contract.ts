@@ -15,6 +15,8 @@ export const SLIDE_OUTPUT_CONTRACT = `SLIDE OUTPUT CONTRACT (STRICT)
 6. For images, use ONLY <img data-bank-id="img-XX" alt="..."> placeholders. Do NOT write src="". The server replaces data-bank-id with the actual image after generation.
 7. Preserve the structural skeleton of slides/<TYPE>.html exactly (DOM tree, class names, data-* attributes). Only replace the human text inside.
 8. The opening slide MUST be \`cover\`. The final slide MUST be \`closing\`. Optional middle slides should follow the template's scaffoldOrder hint.
-9. Aim for the slide count provided by the user (slideCountHint, ±20%).
-10. If an image bank entry has sourceType="page", treat it as a verbatim page capture from the source PDF — only use it when explicitly relevant.
+9. If an image bank entry has sourceType="page", treat it as a verbatim page capture from the source PDF — only use it when explicitly relevant.
+10. Do NOT write inline color values, gradients, or rgba in style attributes — use only the class names that already exist in the shell <style>.
+11. The color --color-highlight (#E2DD2A) is RESERVED for inline text emphasis via <mark> ONLY. Never use it for backgrounds, CTAs, borders, fills, or as a slide accent color.
+12. Maintain a single palette across the deck. Do not mix warm and cool tones across slides; the server has already applied the user-selected palette to the shell.
 `;

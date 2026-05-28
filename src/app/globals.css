@@ -648,6 +648,99 @@ body {
   outline: none;
 }
 
+/* palette select stack */
+.palette-select { display: flex; flex-direction: column; gap: 8px; }
+
+/* slide count input layout */
+.slide-count { display: flex; flex-direction: column; gap: 8px; }
+.slide-count__auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.slide-count__auto[aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; }
+.slide-count__row { display: flex; align-items: center; gap: 12px; }
+.slide-count__hint { font-size: 13px; color: var(--color-text-muted); }
+
+/* shared glass form controls (textarea / number input / radio label) */
+.glass-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--glass-light);
+  border: 1px solid var(--glass-border-w);
+  border-radius: var(--r);
+  box-shadow: var(--glass-hl), var(--glass-shadow-sm);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  transition: border-color var(--ease-stage), box-shadow var(--ease-stage);
+}
+.glass-input:focus {
+  outline: none;
+  border-color: var(--color-text-muted);
+}
+.glass-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+textarea.glass-input { resize: vertical; }
+input.glass-input[type="number"] { width: 96px; }
+
+.glass-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--glass-light);
+  border: 1px solid var(--glass-border-w);
+  border-radius: var(--r);
+  box-shadow: var(--glass-hl), var(--glass-shadow-sm);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  transition: border-color var(--ease-stage), background var(--ease-stage);
+}
+.glass-radio-label[data-checked="true"] {
+  border-color: var(--color-text);
+  background: rgba(255,255,255,0.78);
+}
+.glass-radio-label[aria-disabled="true"],
+.glass-radio-label:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* progress dot variants for new phases (kept in sync with ProgressLine phases) */
+.progress[data-phase="extracting_images"] .progress__dot { background: var(--color-info); }
+.progress[data-phase="pdf_page_capture_skipped"] .progress__dot {
+  background: var(--color-warning);
+  animation: none;
+}
+
+/* secondary button (used for the publish CTA so the primary "スライドを作る" stays unique) */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-text);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background var(--ease-stage);
+}
+.btn-secondary:hover:not([disabled]) { background: rgba(53,54,45,0.06); }
+.btn-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+
 /* toast */
 .toast {
   margin-top: 12px;

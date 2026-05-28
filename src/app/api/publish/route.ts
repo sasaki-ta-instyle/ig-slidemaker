@@ -8,6 +8,17 @@ export const maxDuration = 30;
 let inflight = 0;
 const MAX_INFLIGHT = 3;
 const MAX_HTML_BYTES = 1_500_000;
+
+function tryAcquireSlot(): boolean {
+  if (inflight >= MAX_INFLIGHT) return false;
+  inflight += 1;
+  return true;
+}
+
+function releaseSlot(): void {
+  inflight = Math.max(0, inflight - 1);
+}
+
 const FILENAME_RE = /^[a-z][a-z0-9_-]{0,63}$/;
 const ALLOWED_CATEGORIES = ["app", "cpc", "crhr"] as const;
 type Category = (typeof ALLOWED_CATEGORIES)[number];
@@ -67,7 +78,9 @@ export async function POST(req: Request): Promise<Response> {
     return jsonError(400, "bad_filename", "不正なパスです");
   }
 
-  inflight += 1;
+  if (!tryAcquireSlot()) {
+    return jsonError(503, "busy", "現在他のリクエストを処理中です。少し時間を空けてください。");
+  }
   try {
     const publicUrl = `https://${category}.instyle.group/html/${filename}.html`;
 
@@ -108,6 +121,6 @@ export async function POST(req: Request): Promise<Response> {
       overwritten: exists,
     });
   } finally {
-    inflight = Math.max(0, inflight - 1);
+    releaseSlot();
   }
 }

@@ -26,9 +26,9 @@ export function PreviewIframe({ html, empty }: { html: string; empty?: boolean }
         <div className="preview__placeholder">
           <div className="preview__placeholder-icon">✦</div>
           <p style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, color: "var(--color-text)" }}>
-            ここにリデザインされたページが表示されます
+            ここに生成されたスライドが表示されます
           </p>
-          <p style={{ margin: 0, fontSize: 12 }}>左側で資料を選び、「リデザインする」を押してください</p>
+          <p style={{ margin: 0, fontSize: 12 }}>左で資料を選び「スライドを作る」を押してください</p>
         </div>
       </div>
     );
@@ -39,7 +39,7 @@ export function PreviewIframe({ html, empty }: { html: string; empty?: boolean }
       <iframe
         ref={iframeRef}
         className="preview__frame"
-        title="リデザインプレビュー"
+        title="スライドプレビュー"
         sandbox="allow-same-origin"
         srcDoc={srcdoc || "<!DOCTYPE html><html><body style='background:#fff;color:#82837A;font-family:system-ui;padding:48px;'>生成中…</body></html>"}
       />

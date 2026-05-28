@@ -139,7 +139,7 @@ export function PublishPanel({
         </div>
         <button
           type="button"
-          className="btn-primary publish__apply"
+          className="btn-secondary publish__apply"
           disabled={!canSubmit}
           onClick={() => submit(false)}
         >

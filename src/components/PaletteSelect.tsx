@@ -51,25 +51,15 @@ export function PaletteSelect({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="palette-select">
       {options.map((opt) => {
         const checked = opt.id === value;
         return (
           <label
             key={opt.id}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              cursor: disabled ? "not-allowed" : "pointer",
-              opacity: disabled ? 0.6 : 1,
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: checked
-                ? "1px solid rgba(53,54,45,0.4)"
-                : "1px solid rgba(0,0,0,0.08)",
-              background: checked ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.45)",
-            }}
+            className="glass-radio-label"
+            data-checked={checked ? "true" : "false"}
+            aria-disabled={disabled || undefined}
           >
             <input
               type="radio"
@@ -78,7 +68,7 @@ export function PaletteSelect({
               disabled={disabled}
               onChange={() => onChange(opt.id)}
             />
-            <span style={{ fontSize: 14 }}>{opt.label}</span>
+            <span>{opt.label}</span>
           </label>
         );
       })}

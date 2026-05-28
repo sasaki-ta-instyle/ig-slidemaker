@@ -23,6 +23,16 @@ let inflight = 0;
 const MAX_INFLIGHT = 3;
 const DESIGN_LIQUID_PATH = path.join(process.cwd(), "src/lib/prompt/design-liquid.md");
 
+function tryAcquireSlot(): boolean {
+  if (inflight >= MAX_INFLIGHT) return false;
+  inflight += 1;
+  return true;
+}
+
+function releaseSlot(): void {
+  inflight = Math.max(0, inflight - 1);
+}
+
 function badRequest(message: string, code = "bad_request"): Response {
   return Response.json({ ok: false, code, message }, { status: 400 });
 }
@@ -81,6 +91,9 @@ function buildUserContent(
 }
 
 export async function POST(req: Request): Promise<Response> {
+  // Cheap pre-check to short-circuit obvious overload before doing any work.
+  // Authoritative gate (tryAcquireSlot) happens after validation, just before
+  // we open the stream — so that bad-request paths don't burn a slot.
   if (inflight >= MAX_INFLIGHT) {
     return Response.json(
       { ok: false, code: "busy", message: "現在他のリクエストを処理中です。少し時間を空けてください。" },
@@ -155,7 +168,21 @@ export async function POST(req: Request): Promise<Response> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const mimeType = file.type || "application/octet-stream";
 
-  inflight += 1;
+  // Authoritative gate: atomically check + reserve. If we lose the race with
+  // another request that arrived between the pre-check and here, return 503.
+  if (!tryAcquireSlot()) {
+    return Response.json(
+      { ok: false, code: "busy", message: "現在他のリクエストを処理中です。少し時間を空けてください。" },
+      { status: 503 },
+    );
+  }
+
+  let released = false;
+  const releaseOnce = () => {
+    if (released) return;
+    released = true;
+    releaseSlot();
+  };
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -169,7 +196,7 @@ export async function POST(req: Request): Promise<Response> {
 
       const cleanup = () => {
         clearInterval(heartbeat);
-        inflight = Math.max(0, inflight - 1);
+        releaseOnce();
       };
 
       try {
@@ -208,7 +235,7 @@ export async function POST(req: Request): Promise<Response> {
               event: "progress",
               data: {
                 phase: "pdf_page_capture_skipped",
-                detail: "PDF ページキャプチャは Phase 2 で対応予定（現在は埋め込み画像のみ）",
+                detail: "PDF のページ画像化は未対応です（埋め込み画像のみ取り込みました）",
               },
             }),
           );
@@ -302,17 +329,14 @@ export async function POST(req: Request): Promise<Response> {
               }),
             );
           } else if (evt.type === "between") {
-            // Surface as diagnostic progress detail (non-fatal).
+            // Stray text outside slide markers — keep it in server logs only.
+            // Surfacing this to the UI as "(diagnostic)" progress was noisy
+            // and confused users; the model also leaks reasoning preambles here.
             const trimmed = evt.chunk.trim();
             if (trimmed.length > 0) {
-              controller.enqueue(
-                frame({
-                  event: "progress",
-                  data: {
-                    phase: "writing",
-                    detail: `(diagnostic) スライドマーカー外のテキストを受信: ${trimmed.slice(0, 80)}`,
-                  },
-                }),
+              console.warn(
+                "[generate] between-marker text received:",
+                trimmed.slice(0, 200),
               );
             }
           } else if (evt.type === "usage") {
@@ -355,7 +379,7 @@ export async function POST(req: Request): Promise<Response> {
       }
     },
     cancel() {
-      inflight = Math.max(0, inflight - 1);
+      releaseOnce();
     },
   });
 

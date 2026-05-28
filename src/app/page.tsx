@@ -219,8 +219,8 @@ export default function HomePage() {
           setPhase(truncated ? "truncated" : "done");
           setDetail(
             truncated
-              ? "max_tokens に達しました。「やり直す」で再生成してください。"
-              : `${meta.slideCount ?? 0} スライドを生成しました`,
+              ? "出力上限に達して途中で停止しました。もう一度作り直してください。"
+              : `${meta.slideCount ?? 0} 枚のスライドを生成しました`,
           );
           setDone({
             slideCount: meta.slideCount,
@@ -281,7 +281,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h2 className="controls__section-title">2. カラーパレットを選ぶ</h2>
+              <h2 className="controls__section-title">2. カラーを選ぶ</h2>
               <PaletteSelect
                 value={palette}
                 onChange={setPalette}
@@ -292,7 +292,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h2 className="controls__section-title">3. スライド数の目安</h2>
+              <h2 className="controls__section-title">3. スライド数を決める</h2>
               <SlideCountInput
                 value={slideCount}
                 onChange={setSlideCount}
@@ -301,25 +301,14 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h2 className="controls__section-title">4. 追加指示（任意）</h2>
+              <h2 className="controls__section-title">4. 追加指示を書く（任意）</h2>
               <textarea
-                className="instruction-textarea"
+                className="glass-input"
                 value={instruction}
                 onChange={(e) => setInstruction(e.target.value)}
                 disabled={isStreaming}
                 placeholder="例：表紙の社名は『株式会社サンプル』にしてください。"
                 rows={3}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  borderRadius: 8,
-                  border: "1px solid rgba(0,0,0,0.12)",
-                  background: "rgba(255,255,255,0.6)",
-                  resize: "vertical",
-                  fontFamily: "inherit",
-                }}
               />
             </div>
 
@@ -335,7 +324,7 @@ export default function HomePage() {
                   disabled={!file || !template}
                   onClick={generate}
                 >
-                  スライドを作る
+                  {hasOutput ? "やり直す" : "スライドを作る"}
                 </button>
               )}
             </div>

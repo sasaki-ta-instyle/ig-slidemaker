@@ -15,7 +15,7 @@ const LABEL: Record<Phase, string> = {
   idle: "待機中",
   reading: "資料を読み取っています",
   extracting_images: "画像を抽出しています",
-  pdf_page_capture_skipped: "PDF ページキャプチャはスキップ",
+  pdf_page_capture_skipped: "PDF のページ画像化はスキップしました",
   thinking: "情報構造を組み立てています",
   writing: "スライドを生成しています",
   done: "完成しました",
