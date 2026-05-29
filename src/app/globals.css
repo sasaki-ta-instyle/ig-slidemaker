@@ -680,9 +680,14 @@ body {
   -webkit-backdrop-filter: var(--glass-blur-sm);
   transition: border-color var(--ease-stage), box-shadow var(--ease-stage);
 }
-.glass-input:focus {
+.glass-input:focus,
+.glass-input:focus-visible {
   outline: none;
-  border-color: var(--color-text-muted);
+  border-color: var(--color-text);
+  box-shadow:
+    var(--glass-hl),
+    var(--glass-shadow-sm),
+    0 0 0 3px rgba(53, 54, 45, 0.18);
 }
 .glass-input:disabled {
   opacity: 0.55;
@@ -740,6 +745,16 @@ input.glass-input[type="number"] { width: 96px; }
 }
 .btn-secondary:hover:not([disabled]) { background: rgba(53,54,45,0.06); }
 .btn-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Publish の「公開する」は secondary だが、フォーム内の他要素と高さ・幅を揃えるため
+   サイズだけ publish__apply 側で固定（cascade 順序の関係で .btn-secondary より後に置く）。 */
+.btn-secondary.publish__apply,
+.publish__apply.btn-secondary {
+  width: auto;
+  padding: 12px 22px;
+  font-size: 13px;
+  white-space: nowrap;
+}
 
 /* toast */
 .toast {
