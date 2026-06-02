@@ -1,24 +1,26 @@
 #!/usr/bin/env node
 // Sync src/templates/presentation-liquid/{shell-head,shell-tail,slides/*}
-// from the canonical single-file template at Workspace/ig-slidemaker-template/index.html.
+// from the canonical single-file template at ../ig-slidemaker-template/index.html.
 //
-// Override the source location via env: SLIDE_TEMPLATE_LIQUID=/path/to/index.html
+// Resolution order:
+//   1. SLIDE_TEMPLATE_LIQUID env (absolute path override)
+//   2. <cwd>/../ig-slidemaker-template/index.html (default, relative to repo root)
 //
 // Per-slide post-processing:
-//   - image-figure: <img src="data:image/svg+xml,...">  →  <img data-bank-id="img-01">
-//   - image-grid  : 4 <img>s                             →  data-bank-id="img-02" 〜 "img-05"
+//   - image-figure: <img src="data:image/svg+xml,...">  →  <img data-bank-id="img-001">
+//   - image-grid  : 4 <img>s                             →  data-bank-id="img-002" 〜 "img-005"
 //   - other slide types: pass through unchanged
+//
+// Idempotency: existing src/templates/<template>/slides/*.html are wiped at
+// the start of each run so that retired slide types (e.g. closing / quote)
+// do not linger as orphans for the prompt builder to pick up.
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import os from "node:os";
 
 const STANDALONE =
   process.env.SLIDE_TEMPLATE_LIQUID ??
-  path.join(
-    os.homedir(),
-    "Library/CloudStorage/Dropbox-cr-team/Sasaki Takeshi/Workspace/ig-slidemaker-template/index.html",
-  );
+  path.resolve(process.cwd(), "../ig-slidemaker-template/index.html");
 
 const TARGET = path.join(process.cwd(), "src/templates/presentation-liquid");
 
@@ -44,7 +46,7 @@ function rewriteImageSlide(html, startIndex) {
       return part.replace(/<img\b[^>]*?\/?>/g, (tag) => {
         const altMatch = tag.match(/alt="([^"]*)"/);
         const alt = altMatch ? altMatch[1] : "";
-        const id = `img-${String(i++).padStart(2, "0")}`;
+        const id = `img-${String(i++).padStart(3, "0")}`;
         return `<img data-bank-id="${id}" alt="${alt}" />`;
       });
     })
@@ -104,7 +106,21 @@ async function main() {
   const meta = JSON.parse(await fs.readFile(metaPath, "utf8"));
   const allowed = new Set(meta.slideTypes);
 
-  await fs.mkdir(path.join(TARGET, "slides"), { recursive: true });
+  const slidesDir = path.join(TARGET, "slides");
+  await fs.mkdir(slidesDir, { recursive: true });
+
+  // Idempotency: wipe any pre-existing slide html so retired types don't linger.
+  // We keep non-html siblings (README etc) untouched.
+  const existing = await fs.readdir(slidesDir);
+  let removed = 0;
+  for (const name of existing) {
+    if (name.endsWith(".html")) {
+      await fs.rm(path.join(slidesDir, name));
+      removed += 1;
+    }
+  }
+  if (removed > 0) log(`wiped ${removed} pre-existing slides/*.html`);
+
   await fs.writeFile(path.join(TARGET, "shell-head.html"), shellHead);
   await fs.writeFile(path.join(TARGET, "shell-tail.html"), shellTail);
   log(`shell-head.html  (${shellHead.length}B)`);
@@ -116,7 +132,7 @@ async function main() {
       warn(`skip slide '${type}' (not in meta.json slideTypes)`);
       continue;
     }
-    await fs.writeFile(path.join(TARGET, "slides", `${type}.html`), body);
+    await fs.writeFile(path.join(slidesDir, `${type}.html`), body);
     log(`slides/${type}.html  (${body.length}B)`);
     written += 1;
   }

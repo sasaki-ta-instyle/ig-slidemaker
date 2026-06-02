@@ -30,7 +30,7 @@ src/templates/<id>/
   meta.json          # id / name / description / slideTypes / viewport 等
   shell-head.html    # <!DOCTYPE html> から <body> 開きまで（CSS 全部入り）
   shell-tail.html    # </body></html>
-  slides/<type>.html # cover / body / closing 等の完成サンプル
+  slides/<type>.html # cover / agenda / section / body / image-figure / image-grid の 6 種完成サンプル
   README.md          # Claude 向け DO/DON'T
 ```
 
