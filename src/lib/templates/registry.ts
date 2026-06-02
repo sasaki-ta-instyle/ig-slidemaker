@@ -17,11 +17,6 @@ export interface TemplateMeta {
   scaffoldOrder?: string[];
 }
 
-export interface PaletteInfo {
-  id: string;
-  label: string;
-}
-
 export interface Template {
   id: string;
   meta: TemplateMeta;
@@ -29,26 +24,12 @@ export interface Template {
   shellTail: string;
   slides: Record<string, string>;
   readme: string;
-  palettes: Record<string, string>; // paletteId -> CSS (replaces PALETTE_BEGIN/END block)
-  defaultPalette: string;
 }
 
 const TEMPLATES_ROOT = path.join(process.cwd(), "src/templates");
-const PALETTE_REGEX =
-  /\/\* PALETTE_BEGIN[\s\S]*?\/\* PALETTE_END \*\//;
 
 const templateCache = new Map<string, Template>();
 let metaListCache: TemplateMeta[] | null = null;
-
-/** Apply a palette CSS by replacing the PALETTE_BEGIN/END block in shellHead. */
-export function applyPalette(shellHead: string, paletteCss: string): string {
-  const trimmed = paletteCss.trim();
-  const replacement = `/* PALETTE_BEGIN — applied at request time */\n${trimmed}\n/* PALETTE_END */`;
-  if (!PALETTE_REGEX.test(shellHead)) {
-    return shellHead;
-  }
-  return shellHead.replace(PALETTE_REGEX, replacement);
-}
 
 async function readIfExists(filePath: string): Promise<string> {
   try {
@@ -93,25 +74,6 @@ async function loadTemplateFromDisk(id: string): Promise<Template> {
       }),
   );
 
-  const palettesDir = path.join(dir, "palettes");
-  const palettes: Record<string, string> = {};
-  let paletteEntries: string[] = [];
-  try {
-    paletteEntries = await fs.readdir(palettesDir);
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
-  }
-  await Promise.all(
-    paletteEntries
-      .filter((name) => name.endsWith(".css"))
-      .map(async (name) => {
-        const pid = name.replace(/\.css$/, "");
-        palettes[pid] = await fs.readFile(path.join(palettesDir, name), "utf8");
-      }),
-  );
-
-  const defaultPalette = "ig" in palettes ? "ig" : Object.keys(palettes)[0] ?? "";
-
   return {
     id,
     meta,
@@ -119,15 +81,7 @@ async function loadTemplateFromDisk(id: string): Promise<Template> {
     shellTail,
     slides,
     readme,
-    palettes,
-    defaultPalette,
   };
-}
-
-export function getPaletteList(tpl: Template): PaletteInfo[] {
-  return Object.keys(tpl.palettes)
-    .sort()
-    .map((id) => ({ id, label: id }));
 }
 
 export async function loadTemplate(id: string): Promise<Template> {

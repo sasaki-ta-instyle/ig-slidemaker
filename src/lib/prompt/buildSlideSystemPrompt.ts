@@ -92,10 +92,11 @@ export function buildSlideSystemPrompt(
     type: "text",
     text:
       slideCountHint === "auto"
-        ? "SLIDE COUNT: auto. Decide the natural number of slides for this content. " +
-          "Do NOT pad to hit a target, and do NOT over-condense. " +
-          "Prefer 1 main idea per slide. Typical decks land between 6 and 20 slides; " +
-          "go shorter for brief inputs and longer (up to the template's maxSlides) for dense ones."
+        ? "SLIDE COUNT: auto. The slide count is dictated by the source material, not by a target. " +
+          "Cover EVERY substantive section/idea from the source (see CONTENT FIDELITY in the contract). " +
+          "Prefer 1 main idea per slide — if a section has 3 ideas, that's 3 slides, not a condensed list. " +
+          "Brief sources land at 4–8 slides; dense sources may reach the template's maxSlides. " +
+          "Do NOT pad to hit a round number, and do NOT condense to look concise."
         : `SLIDE COUNT HINT: aim for ${slideCountHint} slides (±20%).`,
   });
 

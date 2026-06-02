@@ -1,166 +1,181 @@
-    </div>
-
-    <!-- 全スライド共通 chrome -->
-    <div class="chrome">
-      <div class="progress" id="progress" style="width: 12.5%"></div>
-      <div class="brand">
-        <img src="https://app.instyle.group/_shared/static/logo.svg" alt="instyle.group">
-        <div class="brand-divider"></div>
-        <div class="brand-context" id="brandContext">Cover</div>
-      </div>
-      <div class="deckmark" id="deckmark">Cover</div>
-      <div class="counter"><b id="counterNum">01</b> &nbsp;/&nbsp; <span id="counterTotal">08</span></div>
-    </div>
-
-  </div>
+  </main>
 </div>
 
-<div class="help" id="help">
-  <span><kbd>←</kbd><kbd>→</kbd> navigate</span>
-  <span><kbd>1</kbd>…<kbd>8</kbd> jump</span>
-  <span><kbd>O</kbd> grid</span>
-  <span><kbd>V</kbd> scroll</span>
-  <span><kbd>F</kbd> fullscreen</span>
+<div class="click-zone prev" aria-hidden="true"></div>
+<div class="click-zone next" aria-hidden="true"></div>
+
+<div class="deck-chrome">
+  <span class="deck-chrome__spacer" aria-hidden="true"></span>
+  <div class="pill" role="toolbar" aria-label="スライド操作">
+    <button type="button" class="pill-action" id="navPrev" aria-label="前へ" aria-keyshortcuts="ArrowLeft">
+      <span class="key" aria-hidden="true">←</span><span>戻る</span>
+    </button>
+    <span class="sep"></span>
+    <button type="button" class="pill-action" id="navNext" aria-label="次へ" aria-keyshortcuts="ArrowRight Space">
+      <span class="key" aria-hidden="true">→</span><span>進む</span>
+    </button>
+    <span class="sep"></span>
+    <button type="button" class="pill-action" id="navFs" aria-label="全画面" aria-keyshortcuts="F">
+      <span class="key" aria-hidden="true">F</span><span>全画面</span>
+    </button>
+    <span class="sep--group" aria-hidden="true"></span>
+    <button type="button" class="pill-action" id="navPrint" aria-label="PDF" aria-keyshortcuts="P">
+      <span class="key" aria-hidden="true">P</span><span>PDF</span>
+    </button>
+    <span class="sep"></span>
+    <button type="button" class="pill-action is-ov" id="ovBtn" aria-label="一覧" aria-keyshortcuts="V" aria-pressed="false">
+      <span class="pill-icon" id="ovIcon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/><rect x="9.5" y="2" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="9.5" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/><rect x="9.5" y="9.5" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/></svg></span>
+      <span id="ovLabel">一覧</span>
+    </button>
+  </div>
+  <span class="deck-chrome__spacer" aria-hidden="true"></span>
 </div>
 
 <script>
 (() => {
+  const SLIDE_W = 1366, SLIDE_H = 900;
   const deck = document.getElementById('deck');
-  const track = document.getElementById('track');
-  const progress = document.getElementById('progress');
-  const counterNum = document.getElementById('counterNum');
-  const counterTotal = document.getElementById('counterTotal');
-  const deckmark = document.getElementById('deckmark');
-  const brandContext = document.getElementById('brandContext');
-
-  const stage = document.querySelector('.stage');
-  const slides = Array.from(track.querySelectorAll('.slide'));
+  const slides = [...deck.querySelectorAll('.slide')];
   const total = slides.length;
-  let current = 0;
-  let overview = false;
-  let vertical = false;
 
-  counterTotal.textContent = String(total).padStart(2, '0');
-
-  function fitStage() {
-    const sw = window.innerWidth;
-    const sh = window.innerHeight;
-    const scale = Math.min(sw / 1366, sh / 900);
-    deck.style.transform = `scale(${scale})`;
-  }
-
-  function applyChrome(i) {
-    const s = slides[i];
-    const isDark = s.dataset.dark === 'true';
-    deck.classList.toggle('is-dark', isDark);
-    counterNum.textContent = String(i + 1).padStart(2, '0');
-    deckmark.textContent = s.dataset.mark || '';
-    brandContext.textContent = s.dataset.name || '';
-    progress.style.width = `${((i + 1) / total) * 100}%`;
-    slides.forEach((sl, idx) => sl.classList.toggle('is-current', idx === i));
-  }
-
-  function go(i) {
-    current = Math.max(0, Math.min(total - 1, i));
-    if (!overview) {
-      track.style.transform = `translateX(${-current * 1366}px)`;
-    }
-    applyChrome(current);
-  }
-
-  function toggleOverview() {
-    if (vertical) toggleVertical();
-    overview = !overview;
-    deck.classList.toggle('is-overview', overview);
-    if (overview) {
-      track.style.transform = 'none';
-    } else {
-      go(current);
-    }
-  }
-
-  function toggleVertical() {
-    if (overview) {
-      overview = false;
-      deck.classList.remove('is-overview');
-    }
-    vertical = !vertical;
-    deck.classList.toggle('is-vertical', vertical);
-    stage.classList.toggle('is-scrolling', vertical);
-    if (vertical) {
-      track.style.transform = 'none';
-      deck.style.transform = 'none';
-      // 現在のスライドへスクロール
-      requestAnimationFrame(() => {
-        slides[current]?.scrollIntoView({ behavior: 'auto', block: 'start' });
-      });
-    } else {
-      fitStage();
-      go(current);
-    }
-  }
-
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.();
-      document.body.classList.add('is-presenting');
-    } else {
-      document.exitFullscreen?.();
-      document.body.classList.remove('is-presenting');
-    }
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'Escape') {
-      if (overview) { toggleOverview(); return; }
-      if (vertical) { toggleVertical(); return; }
-    }
-    if (vertical) {
-      // 縦スクロール時は矢印・1-8 で該当スライドへスクロール、ESC / V で戻る
-      if (/^[1-9]$/.test(e.key)) {
-        const n = Number(e.key) - 1;
-        if (n < total) slides[n].scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-      if (e.key.toLowerCase() === 'v') { toggleVertical(); return; }
-      return;  // 矢印などは native スクロールに任せる
-    }
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(current + 1); }
-    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
-    else if (e.key === 'Home') { go(0); }
-    else if (e.key === 'End') { go(total - 1); }
-    else if (/^[1-9]$/.test(e.key)) { const n = Number(e.key) - 1; if (n < total) go(n); }
-    else if (e.key.toLowerCase() === 'o') { toggleOverview(); }
-    else if (e.key.toLowerCase() === 'v') { toggleVertical(); }
-    else if (e.key.toLowerCase() === 'f') { toggleFullscreen(); }
-  });
-
-  document.querySelector('.stage').addEventListener('click', (e) => {
-    if (overview) {
-      const target = e.target.closest('.slide');
-      if (target) { const idx = slides.indexOf(target); if (idx >= 0) { toggleOverview(); go(idx); } }
+  // Fit-to-window scaling（上下の chrome の高さぶん余白）
+  const isOverview = () => document.body.classList.contains('is-overview');
+  const fit = () => {
+    if (isOverview()) {
+      deck.style.transform = '';
+      const vw = window.innerWidth - 48;
+      deck.style.zoom = String(Math.min(0.85, Math.max(0.22, vw / SLIDE_W)));
       return;
     }
-    const x = e.clientX / window.innerWidth;
-    if (x > 0.5) go(current + 1); else go(current - 1);
+    deck.style.zoom = '';
+    const vw = window.innerWidth - 32;
+    const vh = window.innerHeight - 96;
+    const s = Math.min(1.5, vw / SLIDE_W, vh / SLIDE_H);
+    deck.style.transform = `scale(${s})`;
+  };
+  window.addEventListener('resize', fit);
+  fit();
+
+  // Inject per-slide page numbers (skip the cover)
+  slides.forEach((slide, i) => {
+    if (slide.dataset.slide === 'cover') return;
+    const tag = document.createElement('span');
+    tag.className = 'slide__page-num';
+    tag.setAttribute('aria-hidden', 'true');
+    tag.textContent = String(i + 1).padStart(2, '0');
+    slide.appendChild(tag);
   });
 
-  let touchStartX = null;
-  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  document.addEventListener('touchend', (e) => {
-    if (touchStartX == null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 60) { if (dx < 0) go(current + 1); else go(current - 1); }
-    touchStartX = null;
+  // Header progress bar (click-to-seek)
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  if (progressBar) {
+    progressBar.addEventListener('click', (e) => {
+      const rect = progressBar.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      show(Math.round(ratio * (total - 1)));
+    });
+  }
+
+  // Navigation
+  let idx = 0;
+  const show = (n) => {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((el, i) => el.classList.toggle('is-active', i === idx));
+    const pct = total > 1 ? (idx / (total - 1)) * 100 : 100;
+    if (progressFill) progressFill.style.width = pct + '%';
+    if (progressBar) progressBar.setAttribute('aria-valuenow', String(Math.round(pct)));
+    if (history.replaceState) history.replaceState(null, '', '#' + (idx + 1));
+    if (isOverview()) {
+      slides[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  // Overview toggle
+  const ovBtn = document.getElementById('ovBtn');
+  const setOverview = (on) => {
+    document.body.classList.toggle('is-overview', on);
+    ovBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    document.getElementById('ovLabel').textContent = on ? '戻る' : '一覧';
+    const ovIcon = document.getElementById('ovIcon');
+    if (ovIcon) {
+      ovIcon.innerHTML = on
+        ? '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M9.5 3.5L5 8l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/><rect x="9.5" y="2" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="9.5" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/><rect x="9.5" y="9.5" width="4.5" height="4.5" rx="0.6" stroke="currentColor" stroke-width="1.5"/></svg>';
+    }
+    fit();
+    if (on) {
+      // overview 突入時、現在スライドを中央に
+      requestAnimationFrame(() => slides[idx].scrollIntoView({ block: 'center' }));
+    } else {
+      window.scrollTo(0, 0);
+    }
+  };
+  const toggleOverview = () => setOverview(!isOverview());
+  ovBtn.addEventListener('click', toggleOverview);
+
+  // overview 中、スライドクリックでそのスライドにジャンプして単一表示へ
+  slides.forEach((slide, i) => {
+    slide.addEventListener('click', () => {
+      if (!isOverview()) return;
+      setOverview(false);
+      show(i);
+    });
+  });
+  const next = () => show(idx + 1);
+  const prev = () => show(idx - 1);
+
+  // Restore from hash (or initialize to first slide)
+  const fromHash = parseInt((location.hash || '').replace('#', ''), 10);
+  if (!Number.isNaN(fromHash) && fromHash >= 1 && fromHash <= total) show(fromHash - 1);
+  else show(0);
+
+  window.addEventListener('hashchange', () => {
+    const n = parseInt((location.hash || '').replace('#', ''), 10);
+    if (!Number.isNaN(n)) show(n - 1);
   });
 
-  window.addEventListener('resize', fitStage);
-  fitStage();
+  // Keyboard
+  window.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    switch (e.key) {
+      case 'ArrowRight': case ' ': case 'PageDown': case 'Enter': next(); e.preventDefault(); break;
+      case 'ArrowLeft':  case 'PageUp': case 'Backspace':       prev(); e.preventDefault(); break;
+      case 'Home': show(0); e.preventDefault(); break;
+      case 'End':  show(total - 1); e.preventDefault(); break;
+      case 'f': case 'F': toggleFs(); e.preventDefault(); break;
+      case 'v': case 'V': toggleOverview(); e.preventDefault(); break;
+      case 'Escape': if (isOverview()) { setOverview(false); e.preventDefault(); } break;
+      case 'p': case 'P': if (!e.metaKey && !e.ctrlKey) { window.print(); e.preventDefault(); } break;
+    }
+  });
 
-  const hashMatch = location.hash.match(/^#(\d+)$/);
-  const initial = hashMatch ? Math.max(1, Math.min(total, Number(hashMatch[1]))) - 1 : 0;
-  go(initial);
+  // Click zones
+  document.querySelector('.click-zone.next').addEventListener('click', next);
+  document.querySelector('.click-zone.prev').addEventListener('click', prev);
+
+  // Footer pill actions
+  document.getElementById('navPrev').addEventListener('click', prev);
+  document.getElementById('navNext').addEventListener('click', next);
+  document.getElementById('navFs').addEventListener('click', toggleFs);
+  document.getElementById('navPrint').addEventListener('click', () => window.print());
+
+  // Touch swipe
+  let tx = null;
+  window.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+  window.addEventListener('touchend', (e) => {
+    if (tx === null) return;
+    const dx = (e.changedTouches[0].clientX - tx);
+    if (Math.abs(dx) > 60) (dx < 0 ? next() : prev());
+    tx = null;
+  }, { passive: true });
+
+  // Fullscreen
+  function toggleFs() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
 })();
 </script>
 

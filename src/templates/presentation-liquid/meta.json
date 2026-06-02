@@ -1,14 +1,14 @@
 {
   "id": "presentation-liquid",
   "name": "Presentation Liquid",
-  "description": "instyle.group Liquid Glass deck. 1366×900 landscape, Gen Interface JP, dark/light glass materials.",
+  "description": "instyle.group Liquid Glass deck. 1366×900 landscape, Gen Interface JP, warm-neutral glass surfaces. Self-contained with timeline / overview / fullscreen navigation.",
   "designSystem": "liquid",
   "aspect": "16:10",
   "viewportWidth": 1366,
   "viewportHeight": 900,
   "maxSlides": 40,
   "supportsImages": true,
-  "slideTypes": ["cover", "section", "body", "two", "big", "quote", "compare", "image-figure", "image-grid", "closing"],
-  "imageGuidance": "If the source contains embedded images, prefer image-figure / image-grid / two slide types over text-only content. Page captures from PDF should be used sparingly, ideally as image-figure with a caption explaining what it shows.",
-  "scaffoldOrder": ["cover", "section?", "body|two|big|image-figure|image-grid|quote|compare", "closing"]
+  "slideTypes": ["cover", "agenda", "section", "body", "image-figure", "image-grid"],
+  "imageGuidance": "If the source contains embedded images, prefer image-figure (single hero image) or image-grid (2×2) over text-only slides. Keep image-figure for the most important visual; use image-grid when multiple references benefit from side-by-side comparison. PDF page captures should be used sparingly via image-figure with a caption explaining what the page shows.",
+  "scaffoldOrder": ["cover", "agenda?", "section?", "body|image-figure|image-grid"]
 }

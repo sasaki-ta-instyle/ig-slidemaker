@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "sync:design": "bash scripts/sync-design-md.sh",
+    "sync:template": "node scripts/sync-from-standalone.mjs",
     "predev": "pnpm sync:design",
     "dev": "next dev -p 3010",
     "prebuild": "pnpm sync:design",

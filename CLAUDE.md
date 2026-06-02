@@ -16,15 +16,28 @@
 - 後処理: `<img data-bank-id="img-XX">` プレースホルダを data:URL または `/<app>/_ig-slidemaker-assets/<sha>.webp` に置換
 - 出力: `<iframe srcdoc>` にライブプレビュー、`@media print { .slide { page-break-after:always } }` で印刷 PDF 対応
 
+## テンプレの正本と同期
+
+`presentation-liquid` の正本は **`~/Workspace/ig-slidemaker-template/index.html`**（1 ファイル完結の Liquid Glass スライドテンプレ）。
+正本を編集したら `pnpm sync:template` を走らせると、`src/templates/presentation-liquid/{shell-head.html, shell-tail.html, slides/*.html}` が自動再生成される。
+
+- 同期スクリプト: `scripts/sync-from-standalone.mjs`
+- 画像スライド (`image-figure` / `image-grid`) の `<img>` は、正本の SVG プレースホルダから `<img data-bank-id="img-NN">` に自動変換される
+- `meta.json` と `README.md` は **手動管理**（ig-slidemaker 固有の契約のため）
+- 正本のパスを変える時は `SLIDE_TEMPLATE_LIQUID=/path/to/index.html pnpm sync:template` で上書き可
+
 ## テンプレ規約 `src/templates/<template>/`
 
-- `meta.json` — テンプレ ID / 種別一覧 / 制約
-- `tokens.css` — CSS 変数（カラー・余白・角丸）。これ以外の値を生成HTMLで使わない
-- `base.html` — 共通 `<head>` と `<style>` 全文を含む最小サンプル1枚
-- `slides/<type>.html` — 種別ごとの完成サンプル（cover / agenda / content / image-figure / image-grid / stats / closing 等）
+- `meta.json` — テンプレ ID / `slideTypes` / `scaffoldOrder` / `imageGuidance` / viewport 等
+- `shell-head.html` — `<!doctype>` 〜 `<main class="deck" id="deck">` まで（`<style>` 全文を含む）
+- `shell-tail.html` — `</main></div>` 以降のフッター nav + ナビ JS + `</body></html>`
+- `slides/<type>.html` — 種別ごとの完成サンプル（**cover / agenda / section / body / image-figure / image-grid** の 6 種）
 - `README.md` — Claude 向け DO/DON'T
 
+カラーパレット（`ig` / `mebius` 切替）は廃止。warm-neutral 単一固定。
+
 出力契約: `<!--SLIDE:type-->...<!--/SLIDE-->` で各スライドを仕切る。サーバ側 `slideSplitter` が SSE イベントに分割。
+shell-tail の `<script>` がプレビュー iframe 内で timeline / overview / fullscreen / swipe / pill nav を駆動する（iframe の `sandbox="allow-scripts"`）。スライド本文側の `<script>` だけはサーバが defense-in-depth で剥がす。
 
 ## デプロイ設定
 

@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type Anthropic from "@anthropic-ai/sdk";
 import { extractAttachment, MAX_SIZE, type ExtractedAttachment } from "@/lib/attachments";
-import { loadTemplate, applyPalette } from "@/lib/templates/registry";
+import { loadTemplate } from "@/lib/templates/registry";
 import { ImageBank, type ImageBankEntry } from "@/lib/media/imageBank";
 import {
   extractPptxEmbedded,
@@ -119,7 +119,6 @@ export async function POST(req: Request): Promise<Response> {
   const slideCountHintRaw =
     typeof slideCountHintRawValue === "string" ? slideCountHintRawValue.trim() : "";
   const instructionRaw = String(form.get("instruction") ?? "").trim();
-  const paletteRaw = String(form.get("palette") ?? "").trim();
 
   if (!templateRaw) {
     return badRequest("template フィールドが必要です", "bad_template");
@@ -156,14 +155,6 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return badRequest(`テンプレ「${templateRaw}」が見つかりません`, "bad_template");
   }
-
-  // Resolve palette (default = template.defaultPalette, e.g. "ig").
-  const paletteId =
-    paletteRaw && template.palettes[paletteRaw] ? paletteRaw : template.defaultPalette;
-  const paletteCss = template.palettes[paletteId] ?? "";
-  const resolvedShellHead = paletteCss
-    ? applyPalette(template.shellHead, paletteCss)
-    : template.shellHead;
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const mimeType = file.type || "application/octet-stream";
@@ -253,7 +244,7 @@ export async function POST(req: Request): Promise<Response> {
         controller.enqueue(
           frame({
             event: "shell",
-            data: { shellHead: resolvedShellHead, shellTail: template.shellTail },
+            data: { shellHead: template.shellHead, shellTail: template.shellTail },
           }),
         );
 
@@ -265,10 +256,8 @@ export async function POST(req: Request): Promise<Response> {
           designMd = "";
         }
 
-        // Build prompt — pass a shellHead with the chosen palette applied so
-        // Claude sees the exact CSS variables that the final HTML will use.
         const systemBlocks = buildSlideSystemPrompt({
-          template: { ...template, shellHead: resolvedShellHead },
+          template,
           designMd,
           imageBank: bankEntries,
           slideCountHint,
@@ -349,7 +338,7 @@ export async function POST(req: Request): Promise<Response> {
                   tokensOut: evt.output_tokens,
                   cacheRead: evt.cache_read_input_tokens,
                   finishReason: evt.stop_reason,
-                  shellHead: resolvedShellHead,
+                  shellHead: template.shellHead,
                   shellTail: template.shellTail,
                 },
               }),

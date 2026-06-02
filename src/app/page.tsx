@@ -1,10 +1,6 @@
 "use client";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { DropZone } from "@/components/DropZone";
-import { PaletteSelect } from "@/components/PaletteSelect";
-import { SlideCountInput, type SlideCountValue } from "@/components/SlideCountInput";
-import { PreviewIframe } from "@/components/PreviewIframe";
-import { ActionBar } from "@/components/ActionBar";
 import { ProgressLine, type Phase } from "@/components/ProgressLine";
 import { PublishPanel } from "@/components/PublishPanel";
 
@@ -24,15 +20,11 @@ type SlideState = {
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const DEFAULT_TEMPLATE = "presentation-liquid";
-const DEFAULT_SLIDE_COUNT: SlideCountValue = "auto";
 
-function deriveDownloadName(srcName: string | undefined): string {
-  if (!srcName) return "slides.html";
-  const base = srcName.replace(/\.[^.]+$/, "");
-  return `${base || "slides"}.html`;
-}
-
-function sanitizeHtml(html: string): string {
+// Defense in depth: strip <script> from each slide body (which comes from Claude).
+// The shellHead / shellTail are server-controlled (trusted) and may contain
+// the navigation script that drives timeline / overview / fullscreen in the preview.
+function sanitizeSlideHtml(html: string): string {
   return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
 }
 
@@ -40,7 +32,7 @@ function assembleHtml(shellHead: string, slides: SlideState[], shellTail: string
   const slideBody = slides
     .filter((s): s is SlideState => Boolean(s))
     .sort((a, b) => a.index - b.index)
-    .map((s) => s.html)
+    .map((s) => sanitizeSlideHtml(s.html))
     .join("\n");
   if (!shellHead && !shellTail) {
     // Lightweight fallback preview before <shell> arrives.
@@ -126,9 +118,7 @@ async function consumeSse(res: Response, handlers: SseHandlers) {
 export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
   const template = DEFAULT_TEMPLATE;
-  const [palette, setPalette] = useState<string>("ig");
-  const [slideCount, setSlideCount] = useState<SlideCountValue>(DEFAULT_SLIDE_COUNT);
-  const [instruction, setInstruction] = useState<string>("");
+  const [refineInstruction, setRefineInstruction] = useState<string>("");
   const [slides, setSlides] = useState<SlideState[]>([]);
   const [shellHead, setShellHead] = useState<string>("");
   const [shellTail, setShellTail] = useState<string>("");
@@ -167,7 +157,7 @@ export default function HomePage() {
     });
   }, []);
 
-  const generate = useCallback(async () => {
+  const generate = useCallback(async (overrideInstruction?: string) => {
     if (!file) return;
 
     setError(null);
@@ -184,9 +174,9 @@ export default function HomePage() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("template", template);
-    fd.append("slideCountHint", slideCount === "auto" ? "auto" : String(slideCount));
-    fd.append("palette", palette);
-    if (instruction.trim()) fd.append("instruction", instruction.trim());
+    fd.append("slideCountHint", "auto");
+    const inst = (overrideInstruction ?? "").trim();
+    if (inst) fd.append("instruction", inst);
 
     try {
       const res = await fetch(`${BASE_PATH}/api/generate`, {
@@ -240,7 +230,7 @@ export default function HomePage() {
       setPhase("error");
       setError((err as Error).message ?? "失敗しました");
     }
-  }, [file, template, palette, slideCount, instruction, appendToSlide, upsertSlide]);
+  }, [file, template, appendToSlide, upsertSlide]);
 
   const cancel = useCallback(() => {
     abortRef.current?.abort();
@@ -252,8 +242,18 @@ export default function HomePage() {
     () => assembleHtml(shellHead, slides, shellTail),
     [shellHead, slides, shellTail],
   );
-  const cleaned = useMemo(() => sanitizeHtml(assembled), [assembled]);
   const hasOutput = slides.length > 0;
+
+  const isDone = phase === "done" || phase === "truncated";
+
+  const openPreview = useCallback(() => {
+    if (!assembled) return;
+    const blob = new Blob([assembled], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener,noreferrer");
+    // The new window holds the URL; revoke after a comfortable margin.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }, [assembled]);
 
   return (
     <>
@@ -276,40 +276,7 @@ export default function HomePage() {
         <section className="controls">
           <div className="controls__inner">
             <div>
-              <h2 className="controls__section-title">1. 資料を入れる</h2>
               <DropZone file={file} onFile={setFile} disabled={isStreaming} />
-            </div>
-
-            <div>
-              <h2 className="controls__section-title">2. カラーを選ぶ</h2>
-              <PaletteSelect
-                value={palette}
-                onChange={setPalette}
-                disabled={isStreaming}
-                basePath={BASE_PATH}
-                template={template}
-              />
-            </div>
-
-            <div>
-              <h2 className="controls__section-title">3. スライド数を決める</h2>
-              <SlideCountInput
-                value={slideCount}
-                onChange={setSlideCount}
-                disabled={isStreaming}
-              />
-            </div>
-
-            <div>
-              <h2 className="controls__section-title">4. 追加指示を書く（任意）</h2>
-              <textarea
-                className="glass-input"
-                value={instruction}
-                onChange={(e) => setInstruction(e.target.value)}
-                disabled={isStreaming}
-                placeholder="例：表紙の社名は『株式会社サンプル』にしてください。"
-                rows={3}
-              />
             </div>
 
             <div>
@@ -322,9 +289,9 @@ export default function HomePage() {
                   type="button"
                   className="btn-primary"
                   disabled={!file || !template}
-                  onClick={generate}
+                  onClick={() => generate()}
                 >
-                  {hasOutput ? "やり直す" : "スライドを作る"}
+                  {hasOutput ? "もう一度作る" : "スライドを作る"}
                 </button>
               )}
             </div>
@@ -341,26 +308,49 @@ export default function HomePage() {
 
             {error && <div className="toast">{error}</div>}
 
-            {hasOutput && (
+            {isDone && hasOutput && (
               <div>
-                <h2 className="controls__section-title">5. 公開する</h2>
-                <PublishPanel html={cleaned} disabled={isStreaming} basePath={BASE_PATH} />
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={openPreview}
+                >
+                  プレビューを開く（別ウィンドウ）
+                </button>
+              </div>
+            )}
+
+            {isDone && hasOutput && (
+              <div>
+                <h2 className="controls__section-title">追加指示でやり直す</h2>
+                <div className="result-actions">
+                  <textarea
+                    className="glass-input"
+                    value={refineInstruction}
+                    onChange={(e) => setRefineInstruction(e.target.value)}
+                    disabled={isStreaming}
+                    placeholder=""
+                    rows={3}
+                  />
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    disabled={!refineInstruction.trim()}
+                    onClick={() => generate(refineInstruction)}
+                  >
+                    この指示で作り直す
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isDone && hasOutput && (
+              <div>
+                <h2 className="controls__section-title">公開する</h2>
+                <PublishPanel html={assembled} disabled={isStreaming} basePath={BASE_PATH} />
               </div>
             )}
           </div>
-        </section>
-
-        <section className="preview">
-          <div className="preview__header">
-            <h2 className="preview__title">プレビュー</h2>
-            <ActionBar
-              html={cleaned}
-              filename={deriveDownloadName(file?.name)}
-              onRegenerate={generate}
-              disabled={isStreaming || !file}
-            />
-          </div>
-          <PreviewIframe html={cleaned} empty={!hasOutput} />
         </section>
       </main>
 
