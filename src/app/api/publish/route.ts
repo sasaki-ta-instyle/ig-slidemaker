@@ -20,7 +20,7 @@ function releaseSlot(): void {
 }
 
 const FILENAME_RE = /^[a-z][a-z0-9_-]{0,63}$/;
-const ALLOWED_CATEGORIES = ["app", "cpc", "crhr"] as const;
+const ALLOWED_CATEGORIES = ["cpc", "crhr"] as const;
 type Category = (typeof ALLOWED_CATEGORIES)[number];
 
 function jsonError(status: number, code: string, message: string, extra: Record<string, unknown> = {}): Response {
@@ -45,7 +45,7 @@ export async function POST(req: Request): Promise<Response> {
   const overwrite = body.overwrite === true;
 
   if (!ALLOWED_CATEGORIES.includes(categoryRaw as Category)) {
-    return jsonError(400, "bad_category", "category は app / cpc / crhr のいずれかを指定してください");
+    return jsonError(400, "bad_category", "category は cpc / crhr のいずれかを指定してください");
   }
   const category = categoryRaw as Category;
 

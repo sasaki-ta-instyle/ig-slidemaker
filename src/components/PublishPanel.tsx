@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 const FILENAME_RE = /^[a-z][a-z0-9_-]{0,63}$/;
-type Category = "app" | "cpc" | "crhr";
+type Category = "cpc" | "crhr";
 type Status = "idle" | "submitting" | "exists" | "success" | "error";
 
 function validateFilename(value: string): string | null {
@@ -22,7 +22,7 @@ export function PublishPanel({
   disabled: boolean;
   basePath: string;
 }) {
-  const [category, setCategory] = useState<Category>("app");
+  const [category, setCategory] = useState<Category>("cpc");
   const [filename, setFilename] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
@@ -103,7 +103,7 @@ export function PublishPanel({
     <div className="publish">
       <div className="publish__row publish__row--top">
         <div className="publish__segment" role="radiogroup" aria-label="公開先サブドメイン">
-          {(["app", "cpc", "crhr"] as const).map((c) => (
+          {(["cpc", "crhr"] as const).map((c) => (
             <button
               key={c}
               type="button"
