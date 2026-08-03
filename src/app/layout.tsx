@@ -9,6 +9,7 @@ const DESCRIPTION =
   "PDF / 画像 / Word / PowerPoint を入れると、instyle.group プレゼンテンプレに沿ったマルチスライド HTML を生成します。";
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
   metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
